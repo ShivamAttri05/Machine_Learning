@@ -28,7 +28,7 @@ This folder tracks my progress understanding ML fundamentals—from exploratory 
 
 1. **Clone the repo** (if applicable):
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/ShivamAttri05/Machine_Learning.git
    cd Machine_Learning
    ```
 
