@@ -1,0 +1,163 @@
+/* Base reset & typography */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: radial-gradient(circle at top, #eef4ff, #f7f9fc);
+    margin: 0;
+    padding: 50px 20px;
+    color: #2b2b2b;
+    line-height: 1.5;
+}
+
+/* Main container */
+.container {
+    background: #ffffff;
+    padding: 40px 38px;
+    max-width: 640px;
+    margin: auto;
+    border-radius: 16px;
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.08),
+        0 2px 6px rgba(0, 0, 0, 0.04);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.container:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 14px 40px rgba(0, 0, 0, 0.12),
+        0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* Title */
+h2 {
+    color: #1f2937;
+    text-align: center;
+    margin-bottom: 34px;
+    font-size: 1.9rem;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+}
+
+/* Grid layout */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px 24px;
+    margin-bottom: 26px;
+}
+
+/* Labels */
+label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+    display: block;
+}
+
+/* Inputs & selects */
+input[type=number],
+select {
+    width: 100%;
+    padding: 12px 12px;
+    border: 1.6px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    background-color: #f9fafb;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+input[type=number]:hover,
+select:hover {
+    background-color: #ffffff;
+}
+
+input[type=number]:focus,
+select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Submit button */
+input[type=submit] {
+    width: 100%;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff;
+    padding: 14px 22px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.4px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.25s ease;
+}
+
+input[type=submit]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+}
+
+input[type=submit]:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+/* Result box */
+.result-box {
+    background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+    border-left: 6px solid #22c55e;
+    margin-top: 30px;
+    padding: 18px 22px;
+    border-radius: 12px;
+    text-align: center;
+    animation: fadeIn 0.35s ease;
+}
+
+.result-box h3 {
+    color: #15803d;
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.result-box p {
+    color: #064e3b;
+    font-size: 1.45rem;
+    font-weight: 700;
+    margin-top: 10px;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .container {
+        padding: 30px 24px;
+    }
+
+    h2 {
+        font-size: 1.65rem;
+    }
+}
