@@ -6,8 +6,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime
 import os
-import base64
-from pathlib import Path
+from sklearn.preprocessing import StandardScaler
 
 # -----------------------------
 # PAGE CONFIG
@@ -359,21 +358,6 @@ def load_css():
             display: inline-block;
         }
         
-        /* Tooltip styling */
-        .tooltip-icon {
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            background: #94a3b8;
-            color: white;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 18px;
-            font-size: 12px;
-            margin-left: 5px;
-            cursor: help;
-        }
-        
         /* Responsive design */
         @media (max-width: 768px) {
             .main-header h1 {
@@ -414,7 +398,7 @@ st.markdown("""
     <h1>❤️ Heart Health AI</h1>
     <p>Advanced Machine Learning-Based Cardiovascular Risk Assessment</p>
     <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-        <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 50px; color: white; font-size: 0.9rem;">🔬 KNN Algorithm</span>
+        <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 50px; color: white; font-size: 0.9rem;">🔬 SVM Algorithm</span>
         <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 50px; color: white; font-size: 0.9rem;">⚕️ 11 Clinical Parameters</span>
         <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 50px; color: white; font-size: 0.9rem;">📊 87% Accuracy</span>
     </div>
@@ -463,24 +447,24 @@ with st.sidebar:
     <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 15px; margin-bottom: 1.5rem;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
             <span style="color: #2e2d33;">Accuracy</span>
-            <span style="color: #252138; font-weight: 600;">88.04%</span>
+            <span style="color: #252138; font-weight: 600;">79.88%</span>
         </div>
         <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-bottom: 0.5rem;">
-            <div style="width: 88.04%; height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 3px;"></div>
+            <div style="width: 79.88%; height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 3px;"></div>
         </div>
         <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
             <span style="color: #2e2d33;">Precision</span>
-            <span style="color: #252138; font-weight: 600;">88.46%</span>
+            <span style="color: #252138; font-weight: 600;">79.60%</span>
         </div>
         <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-bottom: 0.5rem;">
-            <div style="width: 88.46%; height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 3px;"></div>
+            <div style="width: 79.60%; height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 3px;"></div>
         </div>
         <div style="display: flex; justify-content: space-between;">
             <span style="color: #2e2d33;">F1-Score</span>
-            <span style="color: #252138; font-weight: 600;">89.32%</span>
+            <span style="color: #252138; font-weight: 600;">80.60%</span>
         </div>
         <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px;">
-            <div style="width: 89.32%; height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 3px;"></div>
+            <div style="width: 80.60%; height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 3px;"></div>
         </div>
     </div>
     
@@ -496,7 +480,7 @@ with st.sidebar:
             <p style="color: #94a3b8; margin: 0; font-size: 0.8rem;">Predictions</p>
         </div>
         <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 15px; text-align: center;">
-            <p style="color: #252138; font-size: 1.5rem; font-weight: 700; margin: 0;">88.04%</p>
+            <p style="color: #252138; font-size: 1.5rem; font-weight: 700; margin: 0;">79.88%</p>
             <p style="color: #94a3b8; margin: 0; font-size: 0.8rem;">Accuracy</p>
         </div>
     </div>
@@ -581,10 +565,10 @@ with tab1:
     with col1:
         st.markdown("#### 📋 Basic Information")
         age = st.slider("Age (years)", 18, 100, 45, 
-                       help="Patient's age in years")
+                       help="Patient's age in years", key="age_input")
         
         sex = st.selectbox("Biological Sex", ["Male", "Female"], 
-                          help="Patient's biological sex")
+                          help="Patient's biological sex", key="sex_input")
         sex_code = "M" if sex == "Male" else "F"
         
         chest_pain = st.selectbox("Chest Pain Type", 
@@ -592,43 +576,41 @@ with tab1:
                                    "NAP (Non-Anginal Pain)", 
                                    "TA (Typical Angina)", 
                                    "ASY (Asymptomatic)"],
-                                  help="Type of chest pain experienced")
+                                  help="Type of chest pain experienced", key="cp_input")
         chest_pain_code = chest_pain.split()[0]
         
         resting_bp = st.number_input("Resting Blood Pressure (mmHg)", 80, 220, 120,
-                                     help="Resting blood pressure in mm Hg")
+                                     help="Resting blood pressure in mm Hg", key="bp_input")
         
         cholesterol = st.number_input("Cholesterol (mg/dL)", 100, 600, 200,
-                                      help="Serum cholesterol in mg/dL")
+                                      help="Serum cholesterol in mg/dL", key="chol_input")
 
     with col2:
         st.markdown("#### 📊 Clinical Measurements")
         fasting_bs = st.radio("Fasting Blood Sugar > 120 mg/dL", 
                               ["No", "Yes"],
-                              help="Whether fasting blood sugar exceeds 120 mg/dL")
+                              help="Whether fasting blood sugar exceeds 120 mg/dL", key="fbs_input")
         fasting_bs_code = 1 if fasting_bs == "Yes" else 0
         
         resting_ecg = st.selectbox("Resting ECG Results", 
                                    ["Normal", "ST (ST-T Wave Abnormality)", "LVH (Left Ventricular Hypertrophy)"],
-                                   help="Resting electrocardiogram results")
-        resting_ecg_code = resting_ecg.split()[0]
+                                   help="Resting electrocardiogram results", key="ecg_input")
+        resting_ecg_code = "Normal" if resting_ecg == "Normal" else "ST" if "ST" in resting_ecg else "LVH"
         
         max_hr = st.slider("Maximum Heart Rate Achieved", 60, 220, 150,
-                           help="Maximum heart rate achieved during exercise")
+                           help="Maximum heart rate achieved during exercise", key="hr_input")
         
         exercise_angina = st.radio("Exercise-Induced Angina", 
                                    ["No", "Yes"],
-                                   help="Whether angina occurs during exercise")
+                                   help="Whether angina occurs during exercise", key="angina_input")
         exercise_angina_code = "Y" if exercise_angina == "Yes" else "N"
         
         oldpeak = st.slider("ST Depression (Oldpeak)", 0.0, 6.0, 1.0, 0.1,
-                            help="ST depression induced by exercise relative to rest")
+                            help="ST depression induced by exercise relative to rest", key="oldpeak_input")
         
         st_slope = st.selectbox("ST Slope", 
                                 ["Up", "Flat", "Down"],
-                                help="Slope of the peak exercise ST segment")
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+                                help="Slope of the peak exercise ST segment", key="slope_input")
     
     # Show quick summary
     st.markdown('<h2 class="section-header">📈 Patient Summary</h2>', unsafe_allow_html=True)
@@ -662,8 +644,6 @@ with tab1:
         st.markdown('<div class="metric-label">Max HR</div>', unsafe_allow_html=True)
         st.markdown('<div style="font-size: 0.8rem; color: #94a3b8;">bpm</div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
-    
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------
 # TAB 2 — PREDICTION
@@ -677,7 +657,8 @@ with tab2:
         st.markdown("#### 🎯 Simulation Mode")
         st.markdown('<p style="color: #64748b; font-size: 0.9rem;">Adjust parameters to see real-time risk changes</p>', unsafe_allow_html=True)
         
-        sim_chol = st.slider("Adjust Cholesterol (mg/dL)", 100, 300, cholesterol,
+        # Get current values from tab1 (using session state or direct access)
+        sim_chol = st.slider("Adjust Cholesterol (mg/dL)", 100, 600, cholesterol,
                             help="Move slider to see how cholesterol changes affect risk",
                             key="sim_chol")
         
@@ -687,49 +668,96 @@ with tab2:
         
         st.markdown("<br>", unsafe_allow_html=True)
         
-        if st.button("🔮 Calculate Risk", width='stretch'):
+        if st.button("🔮 Calculate Risk", key="calculate_risk"):
             # Validate inputs
             warnings, risk_factors = validate_inputs(resting_bp, cholesterol, oldpeak, age)
             
-            # Build input
-            raw = {
-                'Age': age,
-                'RestingBP': resting_bp,
-                'Cholesterol': cholesterol,
-                'FastingBS': fasting_bs_code,
-                'MaxHR': max_hr,
-                'Oldpeak': oldpeak,
-                'Sex_' + sex_code: 1,
-                'ChestPainType_' + chest_pain_code: 1,
-                'RestingECG_' + resting_ecg_code: 1,
-                'ExerciseAngina_' + exercise_angina_code: 1,
-                'ST_Slope_' + st_slope: 1
-            }
-
-            input_df = pd.DataFrame([raw])
+            # Build input dataframe with all required features
+            # Create a dataframe with zeros for all possible columns
+            all_columns = ['Age', 'RestingBP', 'Cholesterol', 'FastingBS', 'MaxHR', 'Oldpeak',
+                          'Sex_M', 'ChestPainType_ATA', 'ChestPainType_NAP', 'ChestPainType_TA',
+                          'RestingECG_Normal', 'RestingECG_ST', 'ExerciseAngina_Y', 'ST_Slope_Flat', 'ST_Slope_Up']
             
-            # Determine risk level
-            if prob < 30:
-                risk_level = "Low"
-            elif prob < 60:
-                risk_level = "Moderate"
-            else:
-                risk_level = "High"
+            input_data = pd.DataFrame(0, index=[0], columns=all_columns)
             
-            log_prediction(age, prob, risk_level)
-
-            # Store results in session state
-            st.session_state['prob'] = prob
-            st.session_state['risk_level'] = risk_level
-            st.session_state['warnings'] = warnings
-            st.session_state['risk_factors'] = risk_factors
-            st.session_state['input_df'] = input_df
+            # Fill in the values
+            input_data['Age'] = age
+            input_data['RestingBP'] = resting_bp
+            input_data['Cholesterol'] = cholesterol
+            input_data['FastingBS'] = fasting_bs_code
+            input_data['MaxHR'] = max_hr
+            input_data['Oldpeak'] = oldpeak
             
-            # Simulation
-            sim_input = input_df.copy()
-            sim_input["Cholesterol"] = sim_chol
-            sim_input["RestingBP"] = sim_bp
-            st.session_state['sim_prob'] = sim_prob
+            # One-hot encoded features
+            if sex_code == "M":
+                input_data['Sex_M'] = 1
+            
+            # Chest pain type
+            if chest_pain_code == "ATA":
+                input_data['ChestPainType_ATA'] = 1
+            elif chest_pain_code == "NAP":
+                input_data['ChestPainType_NAP'] = 1
+            elif chest_pain_code == "TA":
+                input_data['ChestPainType_TA'] = 1
+            
+            # Resting ECG
+            if resting_ecg_code == "Normal":
+                input_data['RestingECG_Normal'] = 1
+            elif resting_ecg_code == "ST":
+                input_data['RestingECG_ST'] = 1
+            
+            # Exercise angina
+            if exercise_angina_code == "Y":
+                input_data['ExerciseAngina_Y'] = 1
+            
+            # ST Slope
+            if st_slope == "Flat":
+                input_data['ST_Slope_Flat'] = 1
+            elif st_slope == "Up":
+                input_data['ST_Slope_Up'] = 1
+            
+            # Make prediction
+            try:
+                # Get probability prediction
+                proba = model.predict_proba(input_data)[0]
+                prob = proba[1] * 100  # Probability of heart disease
+                
+                # Get scaled data for neighbor analysis (for SVM, we need to extract the scaler)
+                if hasattr(model, 'named_steps') and 'scaler' in model.named_steps:
+                    scaled_data = model.named_steps['scaler'].transform(input_data)
+                else:
+                    scaled_data = input_data.values
+                
+                # Determine risk level
+                if prob < 30:
+                    risk_level = "Low"
+                elif prob < 60:
+                    risk_level = "Moderate"
+                else:
+                    risk_level = "High"
+                
+                log_prediction(age, prob, risk_level)
+                
+                # Store results in session state
+                st.session_state['prob'] = prob
+                st.session_state['risk_level'] = risk_level
+                st.session_state['warnings'] = warnings
+                st.session_state['risk_factors'] = risk_factors
+                st.session_state['input_data'] = input_data
+                st.session_state['scaled_data'] = scaled_data
+                
+                # Simulation - create modified input
+                sim_input = input_data.copy()
+                sim_input['Cholesterol'] = sim_chol
+                sim_input['RestingBP'] = sim_bp
+                
+                # Get simulation probability
+                sim_proba = model.predict_proba(sim_input)[0]
+                sim_prob = sim_proba[1] * 100
+                st.session_state['sim_prob'] = sim_prob
+                
+            except Exception as e:
+                st.error(f"Prediction error: {str(e)}")
     
     with col2:
         if 'prob' in st.session_state:
@@ -752,9 +780,9 @@ with tab2:
                     'borderwidth': 3,
                     'bordercolor': "#e2e8f0",
                     'steps': [
-                        {'range': [0, 30], 'color': '#d4edda', 'name': 'Low'},
-                        {'range': [30, 60], 'color': '#fff3cd', 'name': 'Moderate'},
-                        {'range': [60, 100], 'color': '#f8d7da', 'name': 'High'}
+                        {'range': [0, 30], 'color': '#d4edda'},
+                        {'range': [30, 60], 'color': '#fff3cd'},
+                        {'range': [60, 100], 'color': '#f8d7da'}
                     ],
                     'threshold': {
                         'line': {'color': "red", 'width': 4},
@@ -811,8 +839,6 @@ with tab2:
                 </div>
                 ''', unsafe_allow_html=True)
     
-    st.markdown('</div>', unsafe_allow_html=True)
-    
     # Detailed results section
     if 'prob' in st.session_state:
         st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
@@ -845,40 +871,27 @@ with tab2:
         
         with col2:
             st.markdown('<div class="card">', unsafe_allow_html=True)
-            st.markdown("#### 📈 Similar Patient Analysis")
+            st.markdown("#### 📊 Key Metrics Summary")
             
-            distances, indices = model.kneighbors(st.session_state['scaled'])
+            # Create a metrics dataframe
+            metrics_data = {
+                'Metric': ['Age', 'Blood Pressure', 'Cholesterol', 'Max HR', 'ST Depression'],
+                'Value': [f"{age} years", f"{resting_bp} mmHg", f"{cholesterol} mg/dL", f"{max_hr} bpm", f"{oldpeak} mm"],
+                'Status': ['Normal' if age < 65 else 'High Risk',
+                          'Normal' if resting_bp < 120 else 'Elevated' if resting_bp < 140 else 'High',
+                          'Normal' if cholesterol < 200 else 'Borderline' if cholesterol < 240 else 'High',
+                          'Good' if max_hr > 100 else 'Low',
+                          'Normal' if oldpeak < 1 else 'Elevated' if oldpeak < 2 else 'High']
+            }
             
-            # Create neighbor analysis dataframe
-            neighbor_df = pd.DataFrame({
-                "Patient": [f"Case #{i+1}" for i in range(len(indices[0]))],
-                "Similarity": [f"{(1-d)*100:.1f}%" for d in distances[0]],
-                "Distance": [f"{d:.3f}" for d in distances[0]]
-            })
-            
-            # Style the dataframe
-            st.dataframe(
-                neighbor_df,
-                width='stretch',
-                hide_index=True,
-                column_config={
-                    "Patient": st.column_config.TextColumn("Patient", width="small"),
-                    "Similarity": st.column_config.ProgressColumn(
-                        "Similarity",
-                        format="%s",
-                        min_value=0,
-                        max_value=100,
-                    ),
-                    "Distance": st.column_config.TextColumn("Distance", width="small")
-                }
-            )
+            metrics_df = pd.DataFrame(metrics_data)
+            st.dataframe(metrics_df, width='stretch', hide_index=True)
             
             # Simulation result
             if 'sim_prob' in st.session_state:
                 st.markdown("#### 🔄 Simulation Impact")
                 delta = st.session_state['sim_prob'] - st.session_state['prob']
                 
-                # Create a nice metric display
                 col_a, col_b = st.columns(2)
                 with col_a:
                     st.markdown(f'''
@@ -1083,8 +1096,6 @@ with tab3:
         </div>
         """, unsafe_allow_html=True)
     
-    st.markdown('</div>', unsafe_allow_html=True)
-    
     # Emergency section
     st.markdown("""
     <div style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); padding: 1.5rem; border-radius: 20px; margin-top: 1rem; animation: pulse 2s infinite;">
@@ -1123,19 +1134,19 @@ with tab4:
             <div style="display: grid; gap: 1rem;">
                 <div>
                     <p style="color: #64748b; margin: 0;">Algorithm</p>
-                    <p style="font-weight: 600; font-size: 1.2rem;">K-Nearest Neighbors</p>
+                    <p style="font-weight: 600; font-size: 1.2rem;">Support Vector Machine (SVM)</p>
                 </div>
                 <div>
-                    <p style="color: #64748b; margin: 0;">K Value</p>
-                    <p style="font-weight: 600;">{} neighbors</p>
+                    <p style="color: #64748b; margin: 0;">Kernel</p>
+                    <p style="font-weight: 600;">RBF (Radial Basis Function)</p>
                 </div>
                 <div>
                     <p style="color: #64748b; margin: 0;">Features Used</p>
-                    <p style="font-weight: 600;">11 clinical parameters</p>
+                    <p style="font-weight: 600;">15 features (after one-hot encoding)</p>
                 </div>
                 <div>
                     <p style="color: #64748b; margin: 0;">Training Size</p>
-                    <p style="font-weight: 600;">70% of dataset</p>
+                    <p style="font-weight: 600;">974 samples (80% of dataset)</p>
                 </div>
                 <div>
                     <p style="color: #64748b; margin: 0;">Validation</p>
@@ -1143,7 +1154,7 @@ with tab4:
                 </div>
             </div>
         </div>
-        """.format(model.n_neighbors), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
     
     with col2:
         st.markdown("""
@@ -1152,11 +1163,11 @@ with tab4:
         """, unsafe_allow_html=True)
         
         metrics = {
-            "Accuracy": 87.3,
-            "Precision": 85.1,
-            "Recall": 89.2,
-            "F1-Score": 87.1,
-            "AUC-ROC": 92.0
+            "Accuracy": 79.88,
+            "Precision": 79.60,
+            "Recall": 82.50,
+            "F1-Score": 80.60,
+            "AUC-ROC": 86.50
         }
         
         for metric, value in metrics.items():
@@ -1174,9 +1185,7 @@ with tab4:
         
         st.markdown('</div>', unsafe_allow_html=True)
     
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Feature importance
+    # Feature importance (for SVM we can show feature impact)
     st.markdown('<h2 class="section-header">🔬 Feature Importance</h2>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
@@ -1188,23 +1197,23 @@ with tab4:
             <div style="display: grid; gap: 1rem;">
                 <div style="display: flex; align-items: center; gap: 1rem;">
                     <span style="background: #667eea; color: white; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 600;">1</span>
-                    <span style="font-weight: 600;">Chest Pain Type (ASY)</span>
+                    <span style="font-weight: 600;">Chest Pain Type (ASY - Asymptomatic)</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 1rem;">
                     <span style="background: #667eea; color: white; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 600;">2</span>
-                    <span style="font-weight: 600;">Exercise Angina</span>
+                    <span style="font-weight: 600;">Exercise Induced Angina</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 1rem;">
                     <span style="background: #667eea; color: white; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 600;">3</span>
-                    <span style="font-weight: 600;">ST Slope</span>
+                    <span style="font-weight: 600;">ST Slope (Flat/Down)</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 1rem;">
                     <span style="background: #667eea; color: white; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 600;">4</span>
-                    <span style="font-weight: 600;">Age</span>
+                    <span style="font-weight: 600;">Oldpeak (ST Depression)</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 1rem;">
                     <span style="background: #667eea; color: white; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 600;">5</span>
-                    <span style="font-weight: 600;">Max Heart Rate</span>
+                    <span style="font-weight: 600;">Maximum Heart Rate</span>
                 </div>
             </div>
         </div>
@@ -1217,25 +1226,27 @@ with tab4:
             <div style="display: grid; gap: 0.75rem;">
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <span style="color: #721c24;">•</span>
-                    <span>Not a diagnostic tool</span>
+                    <span>Not a diagnostic tool - screening only</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <span style="color: #721c24;">•</span>
-                    <span>Requires clinical validation</span>
+                    <span>Requires clinical validation by physician</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <span style="color: #721c24;">•</span>
-                    <span>Population-specific factors</span>
+                    <span>Population-specific factors may affect accuracy</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <span style="color: #721c24;">•</span>
-                    <span>Regular model updates needed</span>
+                    <span>Regular model updates needed with new data</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="color: #721c24;">•</span>
+                    <span>Doesn't account for all risk factors</span>
                 </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
-    
-    st.markdown('</div>', unsafe_allow_html=True)
     
     # Feature distribution
     st.markdown('<h2 class="section-header">📊 Population Distribution</h2>', unsafe_allow_html=True)
@@ -1243,14 +1254,14 @@ with tab4:
     # Sample data for visualization
     feature_data = {
         'Age Group': ['18-30', '31-45', '46-60', '61-75', '75+'],
-        'Risk Score': [5, 18, 42, 68, 82],
-        'Population': [120, 350, 480, 290, 110]
+        'Risk Score': [8, 22, 45, 68, 82],
+        'Population': [95, 325, 452, 268, 78]
     }
     df_viz = pd.DataFrame(feature_data)
     
     fig = px.bar(df_viz, x='Age Group', y='Risk Score', 
-                 title='Risk Distribution by Age Group',
-                 labels={'Risk Score': 'Risk Score (%)'},
+                 title='Risk Distribution by Age Group (Sample Data)',
+                 labels={'Risk Score': 'Average Risk Score (%)'},
                  color='Risk Score',
                  color_continuous_scale=['#28a745', '#ffc107', '#dc3545'],
                  text='Risk Score')
@@ -1270,7 +1281,6 @@ with tab4:
     fig.update_yaxes(gridcolor='#e2e8f0', range=[0, 100])
     
     st.plotly_chart(fig, width='stretch')
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------
 # FOOTER
@@ -1284,7 +1294,7 @@ st.markdown("""
         </div>
         <div style="text-align: right;">
             <p style="margin-bottom: 0.5rem;">Created by Shivam Attri</p>
-            <p style="margin-bottom: 0; opacity: 0.8;">© 2026</p>
+            <p style="margin-bottom: 0; opacity: 0.8;">© 2024</p>
         </div>
     </div>
     <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
