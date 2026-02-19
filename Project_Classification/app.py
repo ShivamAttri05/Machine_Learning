@@ -397,16 +397,14 @@ load_css()
 # LOAD MODEL SAFELY
 # -----------------------------
 @st.cache_resource
-def load_artifacts():
+def load_model():
     try:
-        model = joblib.load("knn_heart_model.pkl")
-        scaler = joblib.load("heart_scaler.pkl")
-        expected_columns = joblib.load("heart_columns.pkl")
-        return model, scaler, expected_columns, None
+        model = joblib.load("heart_disease_svm_pipeline.pkl")
+        return model, None
     except Exception as e:
-        return None, None, None, str(e)
+        return None, str(e)
 
-model, scaler, expected_columns, load_error = load_artifacts()
+model, load_error = load_model()
 
 # -----------------------------
 # HEADER SECTION WITH ANIMATION
@@ -709,16 +707,6 @@ with tab2:
             }
 
             input_df = pd.DataFrame([raw])
-
-            for col in expected_columns:
-                if col not in input_df.columns:
-                    input_df[col] = 0
-
-            input_df = input_df[expected_columns]
-            scaled = scaler.transform(input_df)
-
-            pred = model.predict(scaled)[0]
-            prob = model.predict_proba(scaled)[0][1] * 100
             
             # Determine risk level
             if prob < 30:
@@ -735,15 +723,12 @@ with tab2:
             st.session_state['risk_level'] = risk_level
             st.session_state['warnings'] = warnings
             st.session_state['risk_factors'] = risk_factors
-            st.session_state['scaled'] = scaled
             st.session_state['input_df'] = input_df
             
             # Simulation
             sim_input = input_df.copy()
             sim_input["Cholesterol"] = sim_chol
             sim_input["RestingBP"] = sim_bp
-            sim_scaled = scaler.transform(sim_input)
-            sim_prob = model.predict_proba(sim_scaled)[0][1] * 100
             st.session_state['sim_prob'] = sim_prob
     
     with col2:
